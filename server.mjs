@@ -28,25 +28,36 @@ function saveMeta(meta) {
   fs.writeFileSync(META_FILE, JSON.stringify(meta));
 }
 
-// Bootstrap único: se ainda não há dados persistidos e existe uma pasta seed/ no
-// deploy, instala os pontos e mídias iniciais no armazenamento persistente.
+// Bootstrap: se existe uma pasta seed/ no deploy, garante que seus pontos e
+// mídias estejam no armazenamento persistente (idempotente — só adiciona o
+// que ainda falta, então também "cura" instalações incompletas em redeploys).
 async function bootstrapFromSeed() {
-  if (fs.existsSync(META_FILE)) return;
   const seedMetaPath = path.join(process.cwd(), 'seed', 'meta.json');
-  if (!fs.existsSync(seedMetaPath)) { saveMeta({ markers: [], media: [] }); return; }
+  const seedMediaDir = path.join(process.cwd(), 'seed', 'media');
+  if (!fs.existsSync(seedMetaPath)) { if (!fs.existsSync(META_FILE)) saveMeta({ markers: [], media: [] }); return; }
   const seed = JSON.parse(fs.readFileSync(seedMetaPath, 'utf8'));
-  const media = [];
+  const meta = loadMeta();
+  const dirFiles = fs.existsSync(seedMediaDir) ? await fsp.readdir(seedMediaDir) : [];
+
+  const haveMarkers = new Set(meta.markers.map(m => m.id));
+  for (const m of seed.markers) if (!haveMarkers.has(m.id)) meta.markers.push(m);
+
+  const haveMedia = new Set(meta.media.map(m => m.id));
+  let added = 0;
   for (const m of seed.media) {
-    const srcName = m.markerId.slice(0, 8) + '__' + m.name.replace(/[\/:*?"<>|]/g, '_');
-    const src = path.join(process.cwd(), 'seed', 'media', srcName);
-    if (!fs.existsSync(src)) { console.warn('bootstrap: faltando', srcName); continue; }
+    if (haveMedia.has(m.id)) continue;
+    const prefix = m.markerId.slice(0, 8) + '__';
+    const foundName = dirFiles.find(f => f.startsWith(prefix));
+    if (!foundName) { console.warn('bootstrap: faltando', m.name); continue; }
+    const src = path.join(seedMediaDir, foundName);
     const storedName = m.id + '__' + m.name.replace(/[\/:*?"<>|]/g, '_');
     await fsp.copyFile(src, path.join(MEDIA_DIR, storedName));
     const { size } = await fsp.stat(src);
-    media.push({ id: m.id, markerId: m.markerId, name: m.name, type: m.type, size, createdAt: m.createdAt || Date.now(), file: storedName });
+    meta.media.push({ id: m.id, markerId: m.markerId, name: m.name, type: m.type, size, createdAt: m.createdAt || Date.now(), file: storedName });
+    added++;
   }
-  saveMeta({ markers: seed.markers, media });
-  console.log(`bootstrap: ${seed.markers.length} pontos, ${media.length}/${seed.media.length} mídias instaladas em ${DATA_DIR}`);
+  saveMeta(meta);
+  console.log(`bootstrap: ${meta.markers.length} pontos, ${meta.media.length}/${seed.media.length} mídias em ${DATA_DIR} (${added} adicionadas agora)`);
 }
 await bootstrapFromSeed();
 
