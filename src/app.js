@@ -157,7 +157,7 @@ function pickSurface() {
   return hits[0] || null;
 }
 
-renderer.domElement.addEventListener('pointerdown', e => { downPos = { x: e.clientX, y: e.clientY, b: e.button }; });
+renderer.domElement.addEventListener('pointerdown', e => { downPos = { x: e.clientX, y: e.clientY, b: e.button }; document.getElementById('topbarMore').classList.remove('open'); });
 renderer.domElement.addEventListener('pointerup', e => {
   if (!downPos || e.button !== 0) { downPos = null; return; }
   const moved = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
@@ -225,10 +225,13 @@ function tickFlight(now) {
   controls.target.lerpVectors(flight.t0v, flight.t1, e);
   if (k >= 1) flight = null;
 }
-document.getElementById('btnHome').onclick = () => { flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: HOME.pos.clone(), t1: HOME.target.clone() }; };
-document.getElementById('btnTop').onclick = () => { flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: new THREE.Vector3(0, 190, 0.5), t1: new THREE.Vector3(0, 0, 0) }; };
+function closeMoreSheet() { document.getElementById('topbarMore').classList.remove('open'); }
+document.getElementById('btnHome').onclick = () => { closeMoreSheet(); flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: HOME.pos.clone(), t1: HOME.target.clone() }; };
+document.getElementById('btnTop').onclick = () => { closeMoreSheet(); flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: new THREE.Vector3(0, 190, 0.5), t1: new THREE.Vector3(0, 0, 0) }; };
 document.getElementById('btnLabels').onclick = e => { map.labels.visible = !map.labels.visible; e.currentTarget.classList.toggle('active', map.labels.visible); };
-document.getElementById('btnAdd').onclick = () => canEdit() && setMode(mode === 'add' ? 'idle' : 'add');
+document.getElementById('btnMore').onclick = () => document.getElementById('topbarMore').classList.toggle('open');
+document.getElementById('btnAdmin')?.addEventListener('click', closeMoreSheet);
+document.getElementById('btnAdd').onclick = () => { if (!canEdit()) return; closeMoreSheet(); setMode(mode === 'add' ? 'idle' : 'add'); if (isMobile()) setSidebarOpen(false); };
 document.getElementById('opacity').oninput = e => { const v = +e.target.value; map.wallMats.forEach(m => { m.opacity = v; m.transparent = v < 1; m.needsUpdate = true; }); };
 
 // ---------------- Imagem do mapa ----------------
@@ -257,6 +260,14 @@ function applyMapImage(src) {
 const listEl = document.getElementById('markerList');
 const searchEl = document.getElementById('search');
 searchEl.oninput = renderList;
+
+// No celular o painel lateral vira uma gaveta (sobreporia a barra de cima se ficasse fixo)
+const sidebarEl = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+function setSidebarOpen(open) { sidebarEl.classList.toggle('open', open); sidebarBackdrop.classList.toggle('open', open); document.body.classList.toggle('sidebar-open', open); if (open) closeMoreSheet(); }
+document.getElementById('btnSidebarToggle').onclick = () => setSidebarOpen(!sidebarEl.classList.contains('open'));
+sidebarBackdrop.onclick = () => setSidebarOpen(false);
+const isMobile = () => matchMedia('(max-width: 900px)').matches;
 function renderList() {
   const q = searchEl.value.trim().toLowerCase();
   const items = [...markers.values()].filter(m => !q || (m.data.name + ' ' + m.data.notes).toLowerCase().includes(q))
@@ -270,7 +281,7 @@ function renderList() {
     el.innerHTML = `<span class="dot" style="background:${m.data.color}"></span><span class="nm"></span><span class="cnt"></span>`;
     el.querySelector('.nm').textContent = m.data.name || 'Sem nome';
     el.querySelector('.cnt').textContent = m.mediaCount ? `${m.mediaCount}` : '';
-    el.onclick = () => { selectMarker(m.data.id); flyTo(m.obj.position); };
+    el.onclick = () => { selectMarker(m.data.id); flyTo(m.obj.position); if (isMobile()) setSidebarOpen(false); };
     listEl.appendChild(el);
   }
 }
