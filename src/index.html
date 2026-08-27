@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa 3D · Convento · Encontro de Adolescentes</title>
+<style>
+  :root { --bg:#171a1f; --panel:#1f242b; --line:#2d343d; --txt:#e9ecf1; --mut:#98a2b3; --acc:#f5a524; --danger:#e5484d; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; font-family:"Segoe UI", system-ui, Arial, sans-serif; color:var(--txt); background:var(--bg); overflow:hidden; }
+  #viewport { position:absolute; inset:0; }
+  #viewport canvas { display:block; width:100%; height:100%; }
+  button { font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--txt); border-radius:8px; padding:7px 11px; }
+  button:hover { border-color:#4a5563; }
+  button.active { background:var(--acc); color:#1a1300; border-color:var(--acc); font-weight:600; }
+  button.primary { background:var(--acc); color:#1a1300; border-color:var(--acc); font-weight:600; }
+  button.danger { color:var(--danger); }
+  input, textarea { font:inherit; color:var(--txt); background:#12151a; border:1px solid var(--line); border-radius:8px; padding:8px 10px; width:100%; }
+  input:focus, textarea:focus { outline:none; border-color:var(--acc); }
+  textarea { resize:vertical; min-height:84px; }
+
+  #topbar { position:absolute; top:12px; left:50%; transform:translateX(-50%); display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:8px; background:rgba(31,36,43,.92); border:1px solid var(--line); border-radius:12px; backdrop-filter:blur(8px); z-index:5; max-width:calc(100% - 24px); }
+  #topbar .sep { width:1px; background:var(--line); margin:0 2px; }
+  #topbar label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--mut); padding:0 4px; }
+  #hint { position:absolute; top:72px; left:50%; transform:translateX(-50%); background:var(--acc); color:#1a1300; font-weight:600; padding:6px 14px; border-radius:20px; font-size:13px; z-index:5; display:none; }
+  body[data-mode="add"] #hint, body[data-mode="move"] #hint { display:block; }
+  #spaceHint { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); background:rgba(20,22,26,.85); color:#fff; padding:6px 14px; border-radius:20px; font-size:13px; z-index:5; display:none; }
+  body.space-pan #spaceHint { display:block; }
+
+  #sidebar { position:absolute; left:12px; top:12px; bottom:12px; width:250px; background:rgba(31,36,43,.94); border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; z-index:4; backdrop-filter:blur(8px); }
+  #sidebar header { padding:12px 12px 8px; border-bottom:1px solid var(--line); }
+  #sidebar h1 { font-size:14px; margin:0 0 2px; }
+  #sidebar h1 small { display:block; font-weight:400; color:var(--mut); font-size:11px; margin-top:2px; }
+  #sidebar .tools { padding:8px 12px; display:flex; gap:6px; align-items:center; }
+  #count { font-size:11px; color:var(--mut); white-space:nowrap; }
+  #markerList { flex:1; overflow:auto; padding:4px 8px 8px; }
+  .item { display:flex; align-items:center; gap:8px; padding:8px 8px; border-radius:8px; cursor:pointer; font-size:13px; }
+  .item:hover { background:#262c35; }
+  .item.sel { background:#30363f; outline:1px solid #4a5563; }
+  .item .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  .item .nm { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item .cnt { font-size:11px; color:var(--mut); background:#12151a; padding:1px 6px; border-radius:10px; }
+  .empty { color:var(--mut); font-size:12px; padding:14px 10px; text-align:center; line-height:1.5; }
+  #sidebar footer { padding:8px 12px 10px; border-top:1px solid var(--line); display:flex; gap:6px; }
+  #sidebar footer button { flex:1; font-size:12px; padding:6px 4px; }
+  #help { font-size:11px; color:var(--mut); padding:0 12px 10px; line-height:1.5; }
+  #help kbd { background:#12151a; border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:10px; }
+
+  #panel { position:absolute; right:12px; top:12px; bottom:12px; width:380px; background:rgba(31,36,43,.96); border:1px solid var(--line); border-radius:12px; z-index:4; display:none; flex-direction:column; backdrop-filter:blur(8px); }
+  #panel.open { display:flex; }
+  #panel.drop { outline:2px dashed var(--acc); }
+  #panel header { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); }
+  #panel header input { font-size:16px; font-weight:600; flex:1; }
+  #panel .body { flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:12px; }
+  #panel .row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  #panel .lbl { font-size:11px; color:var(--mut); text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+  #pCoords { font-size:11px; color:var(--mut); margin-left:auto; }
+  .sw { width:22px; height:22px; border-radius:50%; border:2px solid transparent; padding:0; }
+  .sw.on { border-color:#fff; transform:scale(1.15); }
+  #mediaGrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  #mediaGrid .empty { grid-column:1/-1; border:1px dashed var(--line); border-radius:10px; }
+  .media { position:relative; background:#12151a; border:1px solid var(--line); border-radius:10px; overflow:hidden; cursor:pointer; }
+  .media img, .media video { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#000; }
+  .media .play { position:absolute; top:calc(37% - 14px); left:calc(50% - 16px); width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; pointer-events:none; }
+  .media .meta { padding:6px 8px; font-size:11px; display:flex; justify-content:space-between; gap:6px; }
+  .media .mn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .media .ms { color:var(--mut); flex:none; }
+  .media .del { position:absolute; top:6px; right:6px; width:24px; height:24px; padding:0; border-radius:50%; background:rgba(0,0,0,.6); border:none; font-size:11px; display:none; }
+  .media:hover .del { display:block; }
+  #progress { display:none; font-size:12px; color:var(--acc); }
+  #panel footer { display:flex; gap:6px; padding:10px 12px; border-top:1px solid var(--line); }
+  #panel footer button { flex:1; font-size:12px; }
+
+  #tooltip { position:absolute; z-index:6; pointer-events:none; display:none; background:rgba(20,22,26,.9); color:#fff; font-size:12px; padding:4px 9px; border-radius:6px; white-space:nowrap; }
+
+  #lightbox { position:absolute; inset:0; background:rgba(0,0,0,.9); z-index:20; display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; }
+  #lightbox.open { display:flex; }
+  #lbBody video, #lbBody img { max-width:92vw; max-height:84vh; border-radius:8px; background:#000; }
+  #lbBar { display:flex; gap:12px; align-items:center; color:var(--mut); font-size:13px; }
+  #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg); z-index:30; color:var(--mut); font-size:14px; }
+  @media (max-width: 900px) { #sidebar { width:200px; } #panel { width: min(380px, calc(100% - 24px)); } }
+</style>
+</head>
+<body data-mode="idle">
+<div id="viewport"></div>
+<div id="loading">Carregando o mapa 3D…</div>
+<div id="tooltip"></div>
+
+<div id="topbar">
+  <button id="btnAdd" class="primary" title="Coloque um ponto clicando no mapa">＋ Adicionar ponto</button>
+  <span class="sep"></span>
+  <button id="btnHome" title="Vista inicial">⌂ Início</button>
+  <button id="btnTop" title="Vista de cima">⊡ Vista de cima</button>
+  <button id="btnLabels" class="active" title="Mostrar/ocultar nomes dos cômodos">Aa Nomes</button>
+  <label title="Transparência das paredes">Paredes <input id="opacity" type="range" min="0.15" max="1" step="0.05" value="1" style="width:80px;padding:0"></label>
+  <span class="sep"></span>
+  <button id="btnMapImage" title="Coloca a imagem original do mapa no chão, alinhada à planta 3D">🖼 Imagem do mapa</button>
+  <button id="btnMapImageClear" style="display:none" title="Remover imagem do chão">✕</button>
+</div>
+<div id="hint"></div>
+<div id="spaceHint">✥ Arraste para mover o mapa (solte o Espaço para voltar a girar)</div>
+
+<aside id="sidebar">
+  <header>
+    <h1>Mapa do Convento <small>Encontro de Adolescentes com Cristo · planejamento de ornamentação</small></h1>
+  </header>
+  <div class="tools">
+    <input id="search" placeholder="Buscar ponto…">
+    <span id="count">0 pontos</span>
+  </div>
+  <div id="markerList"></div>
+  <div id="help">
+    <b>Girar:</b> arrastar com o botão esquerdo · <b>Mover:</b> segurar <kbd>Espaço</kbd> e arrastar, botão direito ou <kbd>←↑↓→</kbd> · <b>Zoom:</b> roda do mouse · Passe o mouse sobre um cômodo para ver o nome.
+  </div>
+  <footer>
+    <button id="btnExport" title="Salva um JSON com os pontos e anotações">⬇ Exportar</button>
+    <button id="btnImport" title="Carrega um JSON de pontos">⬆ Importar</button>
+  </footer>
+</aside>
+
+<section id="panel">
+  <header>
+    <input id="pName" placeholder="Nome do ponto">
+    <button id="pClose" title="Fechar">✕</button>
+  </header>
+  <div class="body">
+    <div class="row">
+      <div id="pColors" class="row"></div>
+      <span id="pCoords"></span>
+    </div>
+    <div>
+      <div class="lbl">Anotações de ornamentação</div>
+      <textarea id="pNotes" placeholder="Ideias, medidas, materiais, responsáveis…"></textarea>
+    </div>
+    <div>
+      <div class="lbl">Vídeos e fotos</div>
+      <div class="row" style="margin-bottom:8px">
+        <button id="pAddMedia" class="primary">＋ Adicionar vídeos/fotos</button>
+        <span id="progress"></span>
+      </div>
+      <div id="mediaGrid"></div>
+    </div>
+  </div>
+  <footer>
+    <button id="pFly">◎ Ir até o ponto</button>
+    <button id="btnMove">✥ Mover ponto</button>
+    <button id="pDelete" class="danger">🗑 Excluir</button>
+  </footer>
+</section>
+
+<div id="lightbox">
+  <div id="lbBody"></div>
+  <div id="lbBar"><span id="lbTitle"></span><button id="lbClose">Fechar (Esc)</button></div>
+</div>
+
+<input id="fileInput" type="file" multiple accept="video/*,image/*" hidden>
+<input id="mapImageInput" type="file" accept="image/*" hidden>
+<input id="importInput" type="file" accept="application/json,.json" hidden>
+<!--APP-->
+</body>
+</html>
