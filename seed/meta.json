@@ -1,0 +1,510 @@
+{
+  "markers": [
+    {
+      "id": "04d78de6-a26b-490e-956d-14edd0df31b9",
+      "name": "Corredor COZINHA/IGREJA",
+      "notes": "",
+      "color": "#fdd835",
+      "x": -49.44871364966375,
+      "y": 0.3000000059604645,
+      "z": -4.09787827705675,
+      "createdAt": 1787431284673
+    },
+    {
+      "id": "07935d67-f4ed-4603-9bb5-2eb15756d88d",
+      "name": "Corredor PLENÁRIO",
+      "notes": "",
+      "color": "#fdd835",
+      "x": 19.161839009096568,
+      "y": 0.3000000059604645,
+      "z": 5.819467668759175,
+      "createdAt": 1787431325291
+    },
+    {
+      "id": "20631f9a-5a3d-4b36-916e-01e160713a87",
+      "name": "Entrada",
+      "notes": "",
+      "color": "#e53935",
+      "x": -5.1979509093714915,
+      "y": 0.15000000298024646,
+      "z": 49.531881405640505,
+      "createdAt": 1787430153648
+    },
+    {
+      "id": "21e301a4-f0be-46a0-b3ac-8075519ab481",
+      "name": "Vista Jardim",
+      "notes": "",
+      "color": "#fdd835",
+      "x": -5.995164561754559,
+      "y": 0,
+      "z": 19.519211292448382,
+      "createdAt": 1787430662564
+    },
+    {
+      "id": "2cf1804d-63e6-4aaa-b247-552820c535d2",
+      "name": "Nossos quartos",
+      "notes": "",
+      "color": "#8e24aa",
+      "x": 29.57032182428954,
+      "y": 3.1696645427443517,
+      "z": -22.63000000059605,
+      "createdAt": 1787430975655
+    },
+    {
+      "id": "360a714c-3337-4d6f-9d6b-fc98d37b3250",
+      "name": "Saída para bodega",
+      "notes": "",
+      "color": "#e53935",
+      "x": 24.628167479626526,
+      "y": 0,
+      "z": -59.209510762800875,
+      "createdAt": 1787431043845
+    },
+    {
+      "id": "3ffdd4df-8704-4604-82c4-9199c1984d9c",
+      "name": "Dormitório dos meninos",
+      "notes": "",
+      "color": "#fb8c00",
+      "x": 23.85149227330657,
+      "y": 0.3000000059604645,
+      "z": 3.2298421566567628,
+      "createdAt": 1787430905709
+    },
+    {
+      "id": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio 1 SUPERIOR",
+      "notes": "",
+      "color": "#43a047",
+      "x": 0.24929414637043923,
+      "y": 0.07999999910593034,
+      "z": 8.897759720348416,
+      "createdAt": 1787431863223
+    },
+    {
+      "id": "6307030b-4438-4f3a-9fd8-efb0c5a7cac0",
+      "name": "Corredor e Banheiros 1 e 2",
+      "notes": "",
+      "color": "#fdd835",
+      "x": 6.8539951457159844,
+      "y": 0.3000000059604645,
+      "z": -4.189009868290575,
+      "createdAt": 1787430752138
+    },
+    {
+      "id": "6741142b-aaaa-4140-899a-7032b7acd484",
+      "name": "Recepção",
+      "notes": "",
+      "color": "#00acc1",
+      "x": -4.09285264216869,
+      "y": 0.3000000059604645,
+      "z": 28.23890375540494,
+      "createdAt": 1787430618790
+    },
+    {
+      "id": "6ca0d791-dd36-4105-9953-3590dbc2f405",
+      "name": "Banheiro 8",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": -54.17227141457983,
+      "y": 0.3000000059604645,
+      "z": 46.82935515617634,
+      "createdAt": 1787431821834
+    },
+    {
+      "id": "6d42d532-eb18-47fa-9d33-482ea3b84c7a",
+      "name": "Fim do Corredor",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": 24.159696901065686,
+      "y": 0.3000000059604645,
+      "z": -49.23419005235316,
+      "createdAt": 1787831610413
+    },
+    {
+      "id": "73b51eea-c1be-4534-8f98-6c7156319a5d",
+      "name": "Banheiro 7",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": -37.83374234193165,
+      "y": 0.3000000059604929,
+      "z": 26.58563729797389,
+      "createdAt": 1787431797780
+    },
+    {
+      "id": "76a6575c-6cf3-4631-b2f7-3c4af0811e45",
+      "name": "Dormitório meninas",
+      "notes": "",
+      "color": "#fb8c00",
+      "x": -62.81174110914283,
+      "y": 0.3000000059604361,
+      "z": 49.95927685636823,
+      "createdAt": 1787431378134
+    },
+    {
+      "id": "89f6559b-a338-46a6-ae79-a0099e4f4122",
+      "name": "Banheiro 3",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": 22.003410989111895,
+      "y": 0,
+      "z": -12.735377985527812,
+      "createdAt": 1787431209887
+    },
+    {
+      "id": "8c9b83c4-a4bb-4932-a765-c00070cba892",
+      "name": "Bodega",
+      "notes": "",
+      "color": "#e53935",
+      "x": 5.712154462374753,
+      "y": 0,
+      "z": -42.56989048108517,
+      "createdAt": 1787431016827
+    },
+    {
+      "id": "979253e2-c58e-4a64-8e75-f60745e63e8a",
+      "name": "Banheiro 9",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": -74.27543414300375,
+      "y": 0.3000000059604361,
+      "z": 46.18517091051828,
+      "createdAt": 1787431828042
+    },
+    {
+      "id": "a076551a-3a67-485c-b3ea-4e3a2b16ba81",
+      "name": "Banheiro 6",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": -12.144771982069296,
+      "y": 0.3000000059604645,
+      "z": 22.278358880484426,
+      "createdAt": 1787431772484
+    },
+    {
+      "id": "a5be9974-b7e2-4c20-a223-4452aee3c272",
+      "name": "Plenário 1",
+      "notes": "",
+      "color": "#43a047",
+      "x": 23.36630111282936,
+      "y": 0.3000000059604503,
+      "z": 23.330896671605053,
+      "createdAt": 1787430717768
+    },
+    {
+      "id": "aea9e26f-b762-41d6-a984-66470bc6f327",
+      "name": "Banheiros 4 e 5",
+      "notes": "",
+      "color": "#1e88e5",
+      "x": -68.21999999940397,
+      "y": 1.6081188852645896,
+      "z": -9.001883607624155,
+      "createdAt": 1787430834690
+    },
+    {
+      "id": "b831f2b0-3a06-4002-98f6-6ece7f2c321a",
+      "name": "Gincana",
+      "notes": "",
+      "color": "#e53935",
+      "x": 47.55704277269096,
+      "y": 0,
+      "z": 20.906553326356445,
+      "createdAt": 1787831759824
+    },
+    {
+      "id": "b9fda99d-8d1c-4ee3-af68-cfb12e575e53",
+      "name": "Corredor Bodega",
+      "notes": "",
+      "color": "#e53935",
+      "x": -10.079077746976845,
+      "y": 0,
+      "z": -41.25328589176674,
+      "createdAt": 1787431046104
+    },
+    {
+      "id": "bd8a0773-e0b2-4c2f-bb96-4c9743e2041a",
+      "name": "Pátio 2 PIQUENIQUE E LUAU",
+      "notes": "",
+      "color": "#43a047",
+      "x": -79.18058248497647,
+      "y": 0,
+      "z": 1.6436220634705876,
+      "createdAt": 1787431904302
+    },
+    {
+      "id": "ed595aed-9442-4914-b03c-94a5748c0988",
+      "name": "Corredor sala das famílias",
+      "notes": "",
+      "color": "#fdd835",
+      "x": -15.840267591530159,
+      "y": 0.3000000059604645,
+      "z": 18.85745781142071,
+      "createdAt": 1787431744488
+    }
+  ],
+  "media": [
+    {
+      "id": "07acecfa-9992-414a-a51c-fa99b19959c7",
+      "markerId": "04d78de6-a26b-490e-956d-14edd0df31b9",
+      "name": "Corredor COZINHA E IGREJA.mp4",
+      "type": "video/mp4",
+      "size": 4338190,
+      "createdAt": 1787431730294
+    },
+    {
+      "id": "0a9ee4b3-1310-4bed-8638-7912477d678a",
+      "markerId": "6d42d532-eb18-47fa-9d33-482ea3b84c7a",
+      "name": "Fim do corredor.mp4",
+      "type": "video/mp4",
+      "size": 1759963,
+      "createdAt": 1787831623702
+    },
+    {
+      "id": "1036c292-bb17-4533-924b-1f37da5cb4d8",
+      "markerId": "ed595aed-9442-4914-b03c-94a5748c0988",
+      "name": "Sala das famílias corredor.mp4",
+      "type": "video/mp4",
+      "size": 4380270,
+      "createdAt": 1787431756942
+    },
+    {
+      "id": "116799b2-75e7-4f7f-8ed8-f0f7d809d47f",
+      "markerId": "76a6575c-6cf3-4631-b2f7-3c4af0811e45",
+      "name": "Corredor dormitório das meninas.mp4",
+      "type": "video/mp4",
+      "size": 1710581,
+      "createdAt": 1787432025953
+    },
+    {
+      "id": "136c152d-3894-466e-aadb-de181d7a6edf",
+      "markerId": "aea9e26f-b762-41d6-a984-66470bc6f327",
+      "name": "Banheiros 3 e 4.mp4",
+      "type": "video/mp4",
+      "size": 5227567,
+      "createdAt": 1787430874344
+    },
+    {
+      "id": "1e0d579d-6511-46d8-9faf-400b52efb062",
+      "markerId": "b831f2b0-3a06-4002-98f6-6ece7f2c321a",
+      "name": "Lateral gincana.mp4",
+      "type": "video/mp4",
+      "size": 1945134,
+      "createdAt": 1787831783768
+    },
+    {
+      "id": "1efe91a6-b9ac-421e-b044-660c6f366a61",
+      "markerId": "bd8a0773-e0b2-4c2f-bb96-4c9743e2041a",
+      "name": "Pátio 2.0.jpg",
+      "type": "image/jpeg",
+      "size": 271422,
+      "createdAt": 1787830930474
+    },
+    {
+      "id": "2630c980-ff6e-4a27-a14b-4862e1fe938a",
+      "markerId": "73b51eea-c1be-4534-8f98-6c7156319a5d",
+      "name": "Banheiro de baixo.jpeg",
+      "type": "image/jpeg",
+      "size": 97973,
+      "createdAt": 1787431958725
+    },
+    {
+      "id": "29b554f2-8a5e-498e-b7d7-31d21253d0fb",
+      "markerId": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio.jpg",
+      "type": "image/jpeg",
+      "size": 386375,
+      "createdAt": 1787830876295
+    },
+    {
+      "id": "2dd79f9b-0084-4100-b4c5-af6ab8a774e7",
+      "markerId": "8c9b83c4-a4bb-4932-a765-c00070cba892",
+      "name": "WhatsApp Video 2026-08-22 at 14.56.17.mp4",
+      "type": "video/mp4",
+      "size": 2668411,
+      "createdAt": 1787431101970
+    },
+    {
+      "id": "303e9837-85e9-4453-a380-9e1f39255e10",
+      "markerId": "6307030b-4438-4f3a-9fd8-efb0c5a7cac0",
+      "name": "Primeiros banheiros e corredores.mp4",
+      "type": "video/mp4",
+      "size": 3212090,
+      "createdAt": 1787430774343
+    },
+    {
+      "id": "378576c3-d154-4b53-93f7-202b6f58786c",
+      "markerId": "979253e2-c58e-4a64-8e75-f60745e63e8a",
+      "name": "Banheiro das meninas 2.mp4",
+      "type": "video/mp4",
+      "size": 961155,
+      "createdAt": 1787831326463
+    },
+    {
+      "id": "4dd64058-9ff5-4a58-934a-34256dbdf102",
+      "markerId": "a076551a-3a67-485c-b3ea-4e3a2b16ba81",
+      "name": "Banheiro 8.mp4",
+      "type": "video/mp4",
+      "size": 3007552,
+      "createdAt": 1787431964561
+    },
+    {
+      "id": "53b6494e-3995-483a-8810-a3a0f7876150",
+      "markerId": "3ffdd4df-8704-4604-82c4-9199c1984d9c",
+      "name": "Dormitório dos meninos e corredor das equipes.mp4",
+      "type": "video/mp4",
+      "size": 5005733,
+      "createdAt": 1787430950690
+    },
+    {
+      "id": "671a8a73-340d-4693-8e3d-35cc39d14397",
+      "markerId": "bd8a0773-e0b2-4c2f-bb96-4c9743e2041a",
+      "name": "Pátio 2.1.jpg",
+      "type": "image/jpeg",
+      "size": 380353,
+      "createdAt": 1787830930475
+    },
+    {
+      "id": "6bf4c284-771c-43e4-8563-b11168b90116",
+      "markerId": "bd8a0773-e0b2-4c2f-bb96-4c9743e2041a",
+      "name": "Jardim 2.mp4",
+      "type": "video/mp4",
+      "size": 3274790,
+      "createdAt": 1787431933601
+    },
+    {
+      "id": "71ec38da-5a2c-4dee-91be-9da832ee0132",
+      "markerId": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio 1 superior.mp4",
+      "type": "video/mp4",
+      "size": 4622560,
+      "createdAt": 1787431879392
+    },
+    {
+      "id": "71f46caf-ae04-4f5c-b632-a9019fcbc8fb",
+      "markerId": "6741142b-aaaa-4140-899a-7032b7acd484",
+      "name": "Entrada interna.jpeg",
+      "type": "image/jpeg",
+      "size": 106954,
+      "createdAt": 1787430648766
+    },
+    {
+      "id": "76f8201e-ad53-4d10-a9fc-20426620937f",
+      "markerId": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio 1.1.jpg",
+      "type": "image/jpeg",
+      "size": 493309,
+      "createdAt": 1787830876293
+    },
+    {
+      "id": "7c5e32e8-fbeb-45e7-886f-d3156830de08",
+      "markerId": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio 1.2.jpg",
+      "type": "image/jpeg",
+      "size": 445841,
+      "createdAt": 1787830876294
+    },
+    {
+      "id": "85806c8e-6222-42d6-b022-f65b3b68a8e8",
+      "markerId": "07935d67-f4ed-4603-9bb5-2eb15756d88d",
+      "name": "Corredor em frente ao plenário 1.mp4",
+      "type": "video/mp4",
+      "size": 1782098,
+      "createdAt": 1787831558200
+    },
+    {
+      "id": "94e1d22a-85c1-4720-830c-78650e129446",
+      "markerId": "20631f9a-5a3d-4b36-916e-01e160713a87",
+      "name": "Entrada.mp4",
+      "type": "video/mp4",
+      "size": 6340179,
+      "createdAt": 1787430605488
+    },
+    {
+      "id": "9f506889-926f-47f0-8361-2ceac3857b95",
+      "markerId": "04d78de6-a26b-490e-956d-14edd0df31b9",
+      "name": "Pregos.mp4",
+      "type": "video/mp4",
+      "size": 4339558,
+      "createdAt": 1787431730294
+    },
+    {
+      "id": "a688518f-88f2-4e17-9b16-d3ed07f3030c",
+      "markerId": "2cf1804d-63e6-4aaa-b247-552820c535d2",
+      "name": "WhatsApp Video 2026-08-22 at 14.53.17.mp4",
+      "type": "video/mp4",
+      "size": 1140426,
+      "createdAt": 1787430996774
+    },
+    {
+      "id": "b69f1e6d-6b95-4248-bfb2-562d762c7f1d",
+      "markerId": "21e301a4-f0be-46a0-b3ac-8075519ab481",
+      "name": "Jardim 1 e laterais.mp4",
+      "type": "video/mp4",
+      "size": 3674495,
+      "createdAt": 1787430680919
+    },
+    {
+      "id": "bb0afc1f-156c-4b95-b573-e47986231a5e",
+      "markerId": "2cf1804d-63e6-4aaa-b247-552820c535d2",
+      "name": "Nossos Quartos.jpeg",
+      "type": "image/jpeg",
+      "size": 119110,
+      "createdAt": 1787430991879
+    },
+    {
+      "id": "bc060a29-ff24-4cb6-b9ce-2673fdd95808",
+      "markerId": "a5be9974-b7e2-4c20-a223-4452aee3c272",
+      "name": "Plenário 1.mp4",
+      "type": "video/mp4",
+      "size": 2778677,
+      "createdAt": 1787430727641
+    },
+    {
+      "id": "bd253bbd-0e1b-49ec-b3f4-e650eff9ffd6",
+      "markerId": "360a714c-3337-4d6f-9d6b-fc98d37b3250",
+      "name": "Saindo para bodega.mp4",
+      "type": "video/mp4",
+      "size": 1636568,
+      "createdAt": 1787431063195
+    },
+    {
+      "id": "c3f048ef-47eb-489e-8dc0-ba6bc251dd87",
+      "markerId": "47563168-0d69-4dbb-9d1b-37059be2e03c",
+      "name": "Pátio 1.jpg",
+      "type": "image/jpeg",
+      "size": 310552,
+      "createdAt": 1787830876294
+    },
+    {
+      "id": "c6bb8cea-1716-4567-84b3-7301aa9bf746",
+      "markerId": "6741142b-aaaa-4140-899a-7032b7acd484",
+      "name": "Entrada inicial.mp4",
+      "type": "video/mp4",
+      "size": 1589646,
+      "createdAt": 1787430648763
+    },
+    {
+      "id": "e010144e-1bcd-46a5-b82e-63b655d9b1be",
+      "markerId": "b831f2b0-3a06-4002-98f6-6ece7f2c321a",
+      "name": "GINCANA.mp4",
+      "type": "video/mp4",
+      "size": 3375302,
+      "createdAt": 1787831783768
+    },
+    {
+      "id": "e5346af0-b67c-4213-b2e7-fe36b5e237f5",
+      "markerId": "bd8a0773-e0b2-4c2f-bb96-4c9743e2041a",
+      "name": "Pátio-2-Superior.png",
+      "type": "image/png",
+      "size": 1765531,
+      "createdAt": 1787831263221
+    },
+    {
+      "id": "ea21d3b7-9483-47cd-97cc-0145fed5f463",
+      "markerId": "b9fda99d-8d1c-4ee3-af68-cfb12e575e53",
+      "name": "Corredor Bodega.jpeg",
+      "type": "image/jpeg",
+      "size": 135894,
+      "createdAt": 1787431085330
+    }
+  ]
+}

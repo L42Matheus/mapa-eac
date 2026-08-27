@@ -79,6 +79,21 @@
   #lbBar { display:flex; gap:12px; align-items:center; color:var(--mut); font-size:13px; }
   #loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg); z-index:30; color:var(--mut); font-size:14px; }
   @media (max-width: 900px) { #sidebar { width:200px; } #panel { width: min(380px, calc(100% - 24px)); } }
+
+  /* Modo somente-leitura para quem não é admin (só existe quando há backend online) */
+  body:not(.can-edit) #btnAdd,
+  body:not(.can-edit) #pAddMedia,
+  body:not(.can-edit) #progress,
+  body:not(.can-edit) #pDelete,
+  body:not(.can-edit) #btnMove,
+  body:not(.can-edit) #btnImport,
+  body:not(.can-edit) #btnMapImage,
+  body:not(.can-edit) #btnMapImageClear,
+  body:not(.can-edit) #pColors,
+  body:not(.can-edit) .media .del { display:none !important; }
+  #btnAdmin { display:block; width:100%; margin-top:6px; font-size:11px; opacity:.75; }
+  #btnAdmin.active { opacity:1; color:var(--acc); border-color:var(--acc); }
+  body:not(.online) #btnAdmin { display:none; }
 </style>
 </head>
 <body data-mode="idle">
@@ -103,6 +118,7 @@
 <aside id="sidebar">
   <header>
     <h1>Mapa do Convento <small>Encontro de Adolescentes com Cristo · planejamento de ornamentação</small></h1>
+    <small style="display:block;margin-top:4px;opacity:.6;font-size:10px">Criado por Luciano e Lucas</small>
   </header>
   <div class="tools">
     <input id="search" placeholder="Buscar ponto…">
@@ -112,9 +128,12 @@
   <div id="help">
     <b>Girar:</b> arrastar com o botão esquerdo · <b>Mover:</b> segurar <kbd>Espaço</kbd> e arrastar, botão direito ou <kbd>←↑↓→</kbd> · <b>Zoom:</b> roda do mouse · Passe o mouse sobre um cômodo para ver o nome.
   </div>
-  <footer>
-    <button id="btnExport" title="Salva um JSON com os pontos e anotações">⬇ Exportar</button>
-    <button id="btnImport" title="Carrega um JSON de pontos">⬆ Importar</button>
+  <footer style="flex-direction:column">
+    <div class="row" style="display:flex;gap:6px;width:100%">
+      <button id="btnExport" title="Salva um JSON com os pontos e anotações">⬇ Exportar</button>
+      <button id="btnImport" title="Carrega um JSON de pontos">⬆ Importar</button>
+    </div>
+    <button id="btnAdmin" title="Entrar como admin para poder editar o mapa">🔒 Entrar como admin</button>
   </footer>
 </aside>
 

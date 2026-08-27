@@ -24,3 +24,11 @@ Tudo é salvo no próprio navegador (IndexedDB), no computador em que foi adicio
 npm install
 npm run build
 ```
+
+## Versão online (Railway)
+O mesmo app também roda como site (`npm start`), com um backend (`server.mjs`) que guarda os pontos e mídias num volume persistente — assim todo mundo que acessa o link vê a mesma coisa.
+
+- **Visitantes** só visualizam o mapa (não editam, nem localmente).
+- **Admin** (Luciano e Lucas): clique em **🔒 Entrar como admin** no canto inferior esquerdo e digite a senha (variável `ADMIN_PASSWORD` no Railway). Libera adicionar/mover/excluir pontos e vídeos/fotos — a mudança aparece pra todo mundo.
+- Variáveis de ambiente no Railway: `ADMIN_PASSWORD` (senha do admin), `ADMIN_SECRET` (chave aleatória p/ assinar a sessão), `DATA_DIR` (pasta do volume, ex. `/data`).
+- Para gerar o `mapa-convento.html` de produção (sem embutir vídeos, já que eles ficam no servidor): `SKIP_SEED=1 npm run build`.

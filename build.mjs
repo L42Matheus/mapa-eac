@@ -10,7 +10,7 @@ const r = await build({
 const js = r.outputFiles[0].text.replace(/<\/script/gi, '<\/script');
 
 let seedTag = '';
-if (existsSync('seed/meta.json')) {
+if (!process.env.SKIP_SEED && existsSync('seed/meta.json')) {
   const meta = JSON.parse(readFileSync('seed/meta.json', 'utf8'));
   const media = [];
   for (const m of meta.media) {

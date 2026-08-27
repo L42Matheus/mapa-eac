@@ -2,6 +2,22 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { buildMap, makeLabel, makeMapImagePlane, toMap } from './scene.js';
 import { db, uid } from './db.js';
+import { api, detectServer } from './api.js';
+
+// Modo "online": há um backend (Railway) guardando os pontos/mídias para todo
+// mundo; só o admin logado pode editar. Sem backend (arquivo aberto localmente
+// com duplo clique), continua tudo local no navegador (IndexedDB), sem login.
+let ONLINE = false;
+let IS_ADMIN = false;
+const mediaByMarker = new Map(); // online: markerId -> [{id,name,type,size,url,createdAt}]
+const canEdit = () => !ONLINE || IS_ADMIN;
+function setAdminUI(isAdmin) {
+  IS_ADMIN = isAdmin;
+  document.body.classList.toggle('can-edit', canEdit());
+  const btn = document.getElementById('btnAdmin');
+  if (btn) { btn.textContent = isAdmin ? '🔓 Sair do modo admin' : '🔒 Entrar como admin'; btn.classList.toggle('active', isAdmin); }
+  nameEl.readOnly = !canEdit(); notesEl.readOnly = !canEdit();
+}
 
 // ---------------- Cena ----------------
 const canvasWrap = document.getElementById('viewport');
@@ -96,10 +112,12 @@ function refreshMarkerVisual(id) {
   m.obj.position.set(m.data.x, m.data.y, m.data.z);
 }
 
+function saveMarker(data) { return ONLINE ? api.putMarker(data) : db.putMarker(data); }
+
 async function createMarker(point) {
   const data = { id: uid(), name: 'Novo ponto', notes: '', color: COLORS[markers.size % COLORS.length], x: point.x, y: Math.max(point.y, 0), z: point.z, createdAt: Date.now() };
-  await db.putMarker(data);
-  addMarkerToScene(data);
+  const saved = await saveMarker(data);
+  addMarkerToScene(ONLINE ? saved : data);
   renderList();
   selectMarker(data.id, { focusName: true });
 }
@@ -107,8 +125,8 @@ async function createMarker(point) {
 async function deleteMarker(id) {
   const m = markers.get(id); if (!m) return;
   if (!confirm(`Excluir o ponto "${m.data.name}" e todas as mídias anexadas?`)) return;
-  await db.deleteMediaFor(id);
-  await db.deleteMarker(id);
+  if (ONLINE) { await api.deleteMarker(id); mediaByMarker.delete(id); }
+  else { await db.deleteMediaFor(id); await db.deleteMarker(id); }
   markersGroup.remove(m.obj);
   markers.delete(id);
   if (selectedId === id) closePanel();
@@ -153,7 +171,7 @@ renderer.domElement.addEventListener('pointerup', e => {
     else if (mode === 'move' && selectedId) {
       const m = markers.get(selectedId);
       m.data.x = hit.point.x; m.data.y = Math.max(hit.point.y, 0); m.data.z = hit.point.z;
-      db.putMarker(m.data); refreshMarkerVisual(selectedId); setMode('idle');
+      saveMarker(m.data); refreshMarkerVisual(selectedId); setMode('idle');
     }
     return;
   }
@@ -210,23 +228,29 @@ function tickFlight(now) {
 document.getElementById('btnHome').onclick = () => { flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: HOME.pos.clone(), t1: HOME.target.clone() }; };
 document.getElementById('btnTop').onclick = () => { flight = { t0: performance.now(), ms: 800, p0: camera.position.clone(), t0v: controls.target.clone(), p1: new THREE.Vector3(0, 190, 0.5), t1: new THREE.Vector3(0, 0, 0) }; };
 document.getElementById('btnLabels').onclick = e => { map.labels.visible = !map.labels.visible; e.currentTarget.classList.toggle('active', map.labels.visible); };
-document.getElementById('btnAdd').onclick = () => setMode(mode === 'add' ? 'idle' : 'add');
+document.getElementById('btnAdd').onclick = () => canEdit() && setMode(mode === 'add' ? 'idle' : 'add');
 document.getElementById('opacity').oninput = e => { const v = +e.target.value; map.wallMats.forEach(m => { m.opacity = v; m.transparent = v < 1; m.needsUpdate = true; }); };
 
 // ---------------- Imagem do mapa ----------------
 const mapImgInput = document.getElementById('mapImageInput');
-document.getElementById('btnMapImage').onclick = () => mapImgInput.click();
+document.getElementById('btnMapImage').onclick = () => canEdit() && mapImgInput.click();
 mapImgInput.onchange = async () => {
   const f = mapImgInput.files[0]; if (!f) return;
-  await db.setSetting('mapImage', f); applyMapImage(f); mapImgInput.value = '';
+  if (ONLINE) { const { url } = await api.setMapImage(f); applyMapImage(url); }
+  else { await db.setSetting('mapImage', f); applyMapImage(f); }
+  mapImgInput.value = '';
 };
-document.getElementById('btnMapImageClear').onclick = async () => { await db.deleteSetting('mapImage'); applyMapImage(null); };
-function applyMapImage(blob) {
+document.getElementById('btnMapImageClear').onclick = async () => {
+  if (ONLINE) await api.clearMapImage(); else await db.deleteSetting('mapImage');
+  applyMapImage(null);
+};
+function applyMapImage(src) {
   if (mapImagePlane) { scene.remove(mapImagePlane); mapImagePlane.material.map.dispose(); mapImagePlane = null; }
-  document.getElementById('btnMapImageClear').style.display = blob ? '' : 'none';
-  if (!blob) return;
-  const url = URL.createObjectURL(blob);
-  new THREE.TextureLoader().load(url, tex => { mapImagePlane = makeMapImagePlane(tex); scene.add(mapImagePlane); URL.revokeObjectURL(url); });
+  document.getElementById('btnMapImageClear').style.display = src ? '' : 'none';
+  if (!src) return;
+  const isBlob = typeof src !== 'string';
+  const url = isBlob ? URL.createObjectURL(src) : src;
+  new THREE.TextureLoader().load(url, tex => { mapImagePlane = makeMapImagePlane(tex); scene.add(mapImagePlane); if (isBlob) URL.revokeObjectURL(url); });
 }
 
 // ---------------- Painel lateral (lista) ----------------
@@ -268,23 +292,24 @@ function selectMarker(id, { focusName = false } = {}) {
   const p = toMap(m.obj.position);
   document.getElementById('pCoords').textContent = `x ${Math.round(p.px)} · y ${Math.round(p.py)}`;
   colorsEl.innerHTML = COLORS.map(c => `<button class="sw${c === m.data.color ? ' on' : ''}" style="background:${c}" data-c="${c}" title="${c}"></button>`).join('');
-  colorsEl.querySelectorAll('.sw').forEach(b => b.onclick = () => { m.data.color = b.dataset.c; db.putMarker(m.data); refreshMarkerVisual(id); selectMarker(id); renderList(); });
+  colorsEl.querySelectorAll('.sw').forEach(b => b.onclick = () => { if (!canEdit()) return; m.data.color = b.dataset.c; saveMarker(m.data); refreshMarkerVisual(id); selectMarker(id); renderList(); });
   renderList();
   loadMedia(id);
   if (focusName) { nameEl.focus(); nameEl.select(); }
 }
 function closePanel() { selectedId = null; panel.classList.remove('open'); revokeUrls(); renderList(); }
 document.getElementById('pClose').onclick = closePanel;
-document.getElementById('pDelete').onclick = () => selectedId && deleteMarker(selectedId);
-document.getElementById('btnMove').onclick = () => { if (selectedId) setMode(mode === 'move' ? 'idle' : 'move'); };
+document.getElementById('pDelete').onclick = () => canEdit() && selectedId && deleteMarker(selectedId);
+document.getElementById('btnMove').onclick = () => { if (canEdit() && selectedId) setMode(mode === 'move' ? 'idle' : 'move'); };
 document.getElementById('pFly').onclick = () => { const m = markers.get(selectedId); if (m) flyTo(m.obj.position); };
 
 let saveTimer = null;
 function saveFields() {
+  if (!canEdit()) return;
   const m = markers.get(selectedId); if (!m) return;
   m.data.name = nameEl.value.trim() || 'Sem nome'; m.data.notes = notesEl.value;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { db.putMarker(m.data); refreshMarkerVisual(m.data.id); renderList(); }, 250);
+  saveTimer = setTimeout(() => { saveMarker(m.data); refreshMarkerVisual(m.data.id); renderList(); }, 250);
 }
 nameEl.oninput = saveFields; notesEl.oninput = saveFields;
 
@@ -295,14 +320,15 @@ const fmtSize = n => n > 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n > 1e6 ? (n / 1e6
 async function loadMedia(id) {
   revokeUrls();
   mediaGrid.innerHTML = '<div class="empty">Carregando…</div>';
-  const list = await db.mediaFor(id);
+  const list = ONLINE ? (mediaByMarker.get(id) || []).slice() : await db.mediaFor(id);
   if (selectedId !== id) return;
   list.sort((a, b) => a.createdAt - b.createdAt);
   const m = markers.get(id); if (m) { m.mediaCount = list.length; renderList(); }
   mediaGrid.innerHTML = '';
   if (!list.length) { mediaGrid.innerHTML = '<div class="empty">Nenhum vídeo ou foto ainda.<br>Arraste arquivos aqui ou use <b>Adicionar vídeos/fotos</b>.</div>'; return; }
   for (const it of list) {
-    const url = URL.createObjectURL(it.blob); objectUrls.push(url);
+    const url = ONLINE ? it.url : URL.createObjectURL(it.blob);
+    if (!ONLINE) objectUrls.push(url);
     const isVideo = it.type.startsWith('video/');
     const card = document.createElement('div'); card.className = 'media';
     card.innerHTML = `${isVideo ? `<video src="${url}" muted preload="metadata" playsinline></video><span class="play">▶</span>` : `<img src="${url}" alt="">`}
@@ -310,25 +336,36 @@ async function loadMedia(id) {
       <button class="del" title="Remover">✕</button>`;
     card.querySelector('.mn').textContent = it.name;
     card.onclick = e => { if (e.target.classList.contains('del')) return; openLightbox(it, url); };
-    card.querySelector('.del').onclick = async () => { if (confirm(`Remover "${it.name}"?`)) { await db.deleteMedia(it.id); loadMedia(id); } };
+    card.querySelector('.del').onclick = async () => {
+      if (!canEdit() || !confirm(`Remover "${it.name}"?`)) return;
+      if (ONLINE) { await api.deleteMedia(it.id); mediaByMarker.set(id, (mediaByMarker.get(id) || []).filter(x => x.id !== it.id)); }
+      else await db.deleteMedia(it.id);
+      loadMedia(id);
+    };
     mediaGrid.appendChild(card);
   }
 }
 async function addFiles(files) {
-  if (!selectedId || !files?.length) return;
+  if (!canEdit() || !selectedId || !files?.length) return;
   const id = selectedId;
   const prog = document.getElementById('progress'); prog.style.display = 'block';
   let i = 0;
   for (const f of files) {
     i++; prog.textContent = `Salvando ${i}/${files.length}: ${f.name} (${fmtSize(f.size)})…`;
     if (!/^(video|image)\//.test(f.type)) continue;
-    try { await db.putMedia({ id: uid(), markerId: id, name: f.name, type: f.type, size: f.size, blob: f, createdAt: Date.now() }); }
-    catch (err) { alert(`Não foi possível salvar "${f.name}": ${err.message || err}`); }
+    try {
+      if (ONLINE) {
+        const saved = await api.uploadMedia(id, f, e => { if (e.lengthComputable) prog.textContent = `Enviando ${i}/${files.length}: ${f.name} (${Math.round(e.loaded / e.total * 100)}%)…`; });
+        mediaByMarker.set(id, [...(mediaByMarker.get(id) || []), saved]);
+      } else {
+        await db.putMedia({ id: uid(), markerId: id, name: f.name, type: f.type, size: f.size, blob: f, createdAt: Date.now() });
+      }
+    } catch (err) { alert(`Não foi possível salvar "${f.name}": ${err.message || err}`); }
   }
   prog.style.display = 'none';
   if (selectedId === id) loadMedia(id);
 }
-document.getElementById('pAddMedia').onclick = () => fileInput.click();
+document.getElementById('pAddMedia').onclick = () => canEdit() && fileInput.click();
 fileInput.onchange = () => { addFiles([...fileInput.files]); fileInput.value = ''; };
 ['dragenter', 'dragover'].forEach(ev => panel.addEventListener(ev, e => { e.preventDefault(); panel.classList.add('drop'); }));
 ['dragleave', 'drop'].forEach(ev => panel.addEventListener(ev, e => { e.preventDefault(); panel.classList.remove('drop'); }));
@@ -348,7 +385,7 @@ lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightb
 
 // ---------------- Exportar / Importar ----------------
 document.getElementById('btnExport').onclick = async () => {
-  const mediaMeta = await db.allMediaMeta();
+  const mediaMeta = ONLINE ? [...mediaByMarker.values()].flat() : await db.allMediaMeta();
   const data = { app: 'mapa-convento-3d', version: 1, exportedAt: new Date().toISOString(),
     markers: [...markers.values()].map(m => m.data),
     media: mediaMeta.map(({ id, markerId, name, type, size }) => ({ id, markerId, name, type, size })) };
@@ -357,22 +394,37 @@ document.getElementById('btnExport').onclick = async () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 };
 const importInput = document.getElementById('importInput');
-document.getElementById('btnImport').onclick = () => importInput.click();
+document.getElementById('btnImport').onclick = () => canEdit() && importInput.click();
 importInput.onchange = async () => {
-  const f = importInput.files[0]; importInput.value = ''; if (!f) return;
+  const f = importInput.files[0]; importInput.value = ''; if (!f || !canEdit()) return;
   try {
     const data = JSON.parse(await f.text());
     if (!Array.isArray(data.markers)) throw new Error('arquivo inválido');
     let n = 0;
     for (const d of data.markers) {
       if (!d.id || typeof d.x !== 'number') continue;
-      await db.putMarker(d);
-      if (markers.has(d.id)) { markers.get(d.id).data = d; refreshMarkerVisual(d.id); } else addMarkerToScene(d);
+      const saved = await saveMarker(d);
+      const finalData = ONLINE ? saved : d;
+      if (markers.has(d.id)) { markers.get(d.id).data = finalData; refreshMarkerVisual(d.id); } else addMarkerToScene(finalData);
       n++;
     }
     renderList(); alert(`${n} ponto(s) importado(s). As mídias não viajam no JSON — anexe novamente se necessário.`);
   } catch (err) { alert('Não foi possível importar: ' + (err.message || err)); }
 };
+
+// ---------------- Login de admin (só existe no modo online) ----------------
+document.getElementById('btnAdmin')?.addEventListener('click', async () => {
+  if (IS_ADMIN) {
+    if (!confirm('Sair do modo admin?')) return;
+    await api.logout().catch(() => {});
+    setAdminUI(false);
+    return;
+  }
+  const password = prompt('Senha de admin:');
+  if (!password) return;
+  try { await api.login(password); setAdminUI(true); }
+  catch (err) { alert('Não foi possível entrar: ' + (err.message || err)); }
+});
 
 // ---------------- Boot ----------------
 function resize() {
@@ -382,36 +434,52 @@ function resize() {
 window.addEventListener('resize', resize); resize();
 
 (async () => {
+  ONLINE = await detectServer();
+  document.body.classList.toggle('online', ONLINE);
   try {
-    const saved = await db.allMarkers();
-    saved.forEach(addMarkerToScene);
-    const metas = await db.allMediaMeta();
-    for (const mm of metas) { const m = markers.get(mm.markerId); if (m) m.mediaCount = (m.mediaCount || 0) + 1; }
-    const img = await db.getSetting('mapImage');
-    if (img) applyMapImage(img);
-    // Sementes embutidas no HTML: instala pontos/mídias que ainda não existem neste navegador
-    if (window.__SEED) {
-      const have = new Set(saved.map(m => m.id));
-      for (const d of window.__SEED.markers) if (!have.has(d.id)) { await db.putMarker(d); addMarkerToScene(d); }
-      const haveMedia = new Set(metas.map(m => m.id));
-      const toAdd = window.__SEED.media.filter(s2 => !haveMedia.has(s2.id));
-      const loadEl = document.getElementById('loading');
-      let i = 0;
-      for (const s2 of toAdd) {
-        i++; if (loadEl) loadEl.textContent = `Instalando vídeos e fotos neste navegador… ${i}/${toAdd.length}`;
-        try {
-          const blob = await (await fetch(`data:${s2.type};base64,${s2.b64}`)).blob();
-          await db.putMedia({ id: s2.id, markerId: s2.markerId, name: s2.name, type: s2.type, size: blob.size, blob, createdAt: s2.createdAt || Date.now() });
-          const m = markers.get(s2.markerId); if (m) m.mediaCount = (m.mediaCount || 0) + 1;
-        } catch (err) { console.error('seed media', s2.name, err); }
+    if (ONLINE) {
+      const state = await api.state();
+      state.markers.forEach(addMarkerToScene);
+      for (const it of state.media) {
+        mediaByMarker.set(it.markerId, [...(mediaByMarker.get(it.markerId) || []), it]);
+        const m = markers.get(it.markerId); if (m) m.mediaCount = (m.mediaCount || 0) + 1;
       }
+      const { url: mapImgUrl } = await api.getMapImage().catch(() => ({ url: null }));
+      if (mapImgUrl) applyMapImage(mapImgUrl);
+      const { isAdmin } = await api.me().catch(() => ({ isAdmin: false }));
+      setAdminUI(isAdmin);
+    } else {
+      const saved = await db.allMarkers();
+      saved.forEach(addMarkerToScene);
+      const metas = await db.allMediaMeta();
+      for (const mm of metas) { const m = markers.get(mm.markerId); if (m) m.mediaCount = (m.mediaCount || 0) + 1; }
+      const img = await db.getSetting('mapImage');
+      if (img) applyMapImage(img);
+      // Sementes embutidas no HTML: instala pontos/mídias que ainda não existem neste navegador
+      if (window.__SEED) {
+        const have = new Set(saved.map(m => m.id));
+        for (const d of window.__SEED.markers) if (!have.has(d.id)) { await db.putMarker(d); addMarkerToScene(d); }
+        const haveMedia = new Set(metas.map(m => m.id));
+        const toAdd = window.__SEED.media.filter(s2 => !haveMedia.has(s2.id));
+        const loadEl = document.getElementById('loading');
+        let i = 0;
+        for (const s2 of toAdd) {
+          i++; if (loadEl) loadEl.textContent = `Instalando vídeos e fotos neste navegador… ${i}/${toAdd.length}`;
+          try {
+            const blob = await (await fetch(`data:${s2.type};base64,${s2.b64}`)).blob();
+            await db.putMedia({ id: s2.id, markerId: s2.markerId, name: s2.name, type: s2.type, size: blob.size, blob, createdAt: s2.createdAt || Date.now() });
+            const m = markers.get(s2.markerId); if (m) m.mediaCount = (m.mediaCount || 0) + 1;
+          } catch (err) { console.error('seed media', s2.name, err); }
+        }
+      }
+      setAdminUI(true);
     }
   } catch (err) {
     console.error(err);
-    alert('Este navegador bloqueou o armazenamento local (IndexedDB). Abra o arquivo no Chrome ou Edge.');
+    if (!ONLINE) alert('Este navegador bloqueou o armazenamento local (IndexedDB). Abra o arquivo no Chrome ou Edge.');
   }
   renderList();
-  if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+  if (!ONLINE && navigator.storage?.persist) navigator.storage.persist().catch(() => {});
   document.getElementById('loading').remove();
 })();
 
