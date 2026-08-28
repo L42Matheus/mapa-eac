@@ -38,26 +38,32 @@ async function bootstrapFromSeed() {
   const seed = JSON.parse(fs.readFileSync(seedMetaPath, 'utf8'));
   const meta = loadMeta();
   const dirFiles = fs.existsSync(seedMediaDir) ? await fsp.readdir(seedMediaDir) : [];
+  // nomes com acento podem ficar em formas Unicode diferentes (NFC/NFD) entre
+  // o macOS de origem e o Linux do container — normaliza antes de comparar
+  const norm = s => s.normalize('NFC');
+  const dirFilesNorm = dirFiles.map(f => ({ raw: f, norm: norm(f) }));
 
   const haveMarkers = new Set(meta.markers.map(m => m.id));
   for (const m of seed.markers) if (!haveMarkers.has(m.id)) meta.markers.push(m);
 
-  const haveMedia = new Set(meta.media.map(m => m.id));
-  let added = 0;
+  const mediaById = new Map(meta.media.map(m => [m.id, m]));
+  let added = 0, fixed = 0;
   for (const m of seed.media) {
-    if (haveMedia.has(m.id)) continue;
-    const prefix = m.markerId.slice(0, 8) + '__';
-    const foundName = dirFiles.find(f => f.startsWith(prefix));
-    if (!foundName) { console.warn('bootstrap: faltando', m.name); continue; }
-    const src = path.join(seedMediaDir, foundName);
+    const expectedName = norm(m.markerId.slice(0, 8) + '__' + m.name.replace(/[\/:*?"<>|]/g, '_'));
+    const match = dirFilesNorm.find(f => f.norm === expectedName);
+    const existing = mediaById.get(m.id);
+    if (!match) { if (!existing) console.warn('bootstrap: faltando', m.name); continue; }
+    const src = path.join(seedMediaDir, match.raw);
+    const { size } = await fsp.stat(src);
+    if (existing && existing.size === size) continue; // já instalada e correta
     const storedName = m.id + '__' + m.name.replace(/[\/:*?"<>|]/g, '_');
     await fsp.copyFile(src, path.join(MEDIA_DIR, storedName));
-    const { size } = await fsp.stat(src);
-    meta.media.push({ id: m.id, markerId: m.markerId, name: m.name, type: m.type, size, createdAt: m.createdAt || Date.now(), file: storedName });
-    added++;
+    const entry = { id: m.id, markerId: m.markerId, name: m.name, type: m.type, size, createdAt: m.createdAt || Date.now(), file: storedName };
+    if (existing) { Object.assign(existing, entry); fixed++; }
+    else { meta.media.push(entry); mediaById.set(m.id, entry); added++; }
   }
   saveMeta(meta);
-  console.log(`bootstrap: ${meta.markers.length} pontos, ${meta.media.length}/${seed.media.length} mídias em ${DATA_DIR} (${added} adicionadas agora)`);
+  console.log(`bootstrap: ${meta.markers.length} pontos, ${meta.media.length}/${seed.media.length} mídias em ${DATA_DIR} (${added} adicionadas, ${fixed} corrigidas)`);
 }
 await bootstrapFromSeed();
 
